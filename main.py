@@ -200,8 +200,6 @@ def keep_alive():
 
 # Botni ishga tushirishdan oldin bu funksiyani chaqiramiz
 if __name__ == '__main__':
-    print("Bot ishga tushdi...")
       keep_alive()
-    # skip_pending=True eski (to'planib qolgan) xabarlarni o'chirib yuboradi
     bot.infinity_polling(skip_pending=True)
     
