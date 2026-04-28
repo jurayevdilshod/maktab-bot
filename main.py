@@ -1,6 +1,9 @@
 import telebot
 from telebot import types
 import datetime
+import os
+from flask import Flask
+from threading import Thread
 
 # @BotFather'dan olgan tokenni bu yerga qo'ying
 API_TOKEN = '8782950949:AAH9vh305D1NtB6xCXZ6_C4Jk7IlL64TmY0'
@@ -14,7 +17,7 @@ BELL_SCHEDULE = {
     "4": "10:45 - 11:30", "5": "11:35 - 12:20", "6": "12:25 - 13:10"
 }
 
-# BARCHA SINFLAR JADVALI (6A dan 11B gacha)
+# BARCHA SINFLAR JADVALI
 SCHEDULE = {
     "6A": {
         "Dushanba": ["Kelajak soati", "Ona tili", "Rus tili", "Matematika", "Ingliz tili"],
@@ -126,7 +129,6 @@ def day_keyboard():
     days = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"]
     markup.add(*[types.KeyboardButton(d) for d in days])
     markup.add(types.KeyboardButton("Bugun"), types.KeyboardButton("⬅️ Ortga"))
-    # Menyu ichiga Start tugmasini qo'shish
     markup.add(types.KeyboardButton("/start"))
     return markup
 
@@ -145,46 +147,35 @@ def process_class(message):
 @bot.message_handler(func=lambda m: m.text in ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Bugun", "⬅️ Ortga", "/start"])
 def process_day(message):
     chat_id = message.chat.id
-    
     if message.text == "/start":
         return start_cmd(message)
-
     if chat_id not in user_data:
         bot.send_message(chat_id, "Avval sinfni tanlang.", reply_markup=class_keyboard())
         return
-
     if message.text == "⬅️ Ortga":
         bot.send_message(chat_id, "Sinfni qayta tanlang:", reply_markup=class_keyboard())
         return
 
     user_class = user_data[chat_id]
     target_day = message.text
-    
     if target_day == "Bugun":
         days_uz = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
         target_day = days_uz[datetime.datetime.now().weekday()]
-
     if target_day == "Yakshanba":
         bot.send_message(chat_id, "😴 Bugun yakshanba, dam olish kuni!")
         return
 
     lessons = SCHEDULE[user_class].get(target_day, [])
-    
     if not lessons:
         bot.send_message(chat_id, "Bu kun uchun jadval topilmadi.")
     else:
-        text = f"📅 *{target_day} | {user_class} sinfi*\n\n"
-        text += "📝 *Darslar va vaqti:*\n"
+        text = f"📅 *{target_day} | {user_class} sinfi*\n\n📝 *Darslar va vaqti:*\n"
         for i, lesson in enumerate(lessons, 1):
             time_range = BELL_SCHEDULE.get(str(i), "--:--")
             text += f"{i}. {time_range} — *{lesson}*\n"
-        
         bot.send_message(chat_id, text, parse_mode="Markdown")
 
-import os
-from flask import Flask
-from threading import Thread
-
+# --- KEEP ALIVE ---
 app = Flask('')
 
 @app.route('/')
@@ -198,8 +189,7 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# Botni ishga tushirishdan oldin bu funksiyani chaqiramiz
 if __name__ == '__main__':
-      keep_alive()
+    print("Bot ishga tushdi...")
+    keep_alive()
     bot.infinity_polling(skip_pending=True)
-    
