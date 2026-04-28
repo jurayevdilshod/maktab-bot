@@ -181,7 +181,27 @@ def process_day(message):
         
         bot.send_message(chat_id, text, parse_mode="Markdown")
 
+import os
+from flask import Flask
+from threading import Thread
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot ishlayapti!"
+
+def run():
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+# Botni ishga tushirishdan oldin bu funksiyani chaqiramiz
 if __name__ == '__main__':
     print("Bot ishga tushdi...")
+      keep_alive()
     # skip_pending=True eski (to'planib qolgan) xabarlarni o'chirib yuboradi
     bot.infinity_polling(skip_pending=True)
+    
